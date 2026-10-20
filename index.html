@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+  (function() {
+    var GA_ID = 'G-PL5Q3TLXKG';
+    var isLocalDev = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+    if (isLocalDev) return;
+    try { if (/[?&]no_ga=0/.test(location.search)) localStorage.removeItem('no_ga'); if (/[?&]no_ga=1/.test(location.search)) localStorage.setItem('no_ga', '1'); if (localStorage.getItem('no_ga') === '1') return; } catch (e) {}
+    var gaQ = new URLSearchParams(location.search); if (gaQ.get('obs') === '1' || gaQ.get('no_ga') === '1') return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', GA_ID);
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href*="booth.pm"]') : null;
+      if (!a) return;
+      gtag('event', 'booth_click', { link_url: a.href, link_id: a.id || '', link_text: (a.textContent || '').trim().slice(0, 40) });
+    });
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ダブルスの乱数表(組み合わせ表)を無料で自動作成。人数とコートの面数を選ぶだけで、テニス・バドミントン・卓球の練習会で毎回ペアと相手が入れかわる組み合わせ表ができます。試合数と休みはなるべく同じに、同じペアはなるべく重ならないように。5人・6人・8人、1面・2面・3面、シングルスにも。登録不要。">
+<link rel="canonical" href="https://uuhai0625.github.io/doubles-ransuhyo/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="ダブルス乱数表メーカー|テニス・バドミントン・卓球のダブルス組み合わせ表を自動作成(人数・面数を選ぶだけ)">
+<meta property="og:description" content="ダブルスの乱数表(組み合わせ表)を無料で自動作成。人数とコートの面数を選ぶだけで、テニス・バドミントン・卓球の練習会で毎回ペアと相手が入れかわる組み合わせ表ができます。試合数と休みはなるべく同じに、同じペアはなるべく重ならないように。5人・6人・8人、1面・2面・3面、シングルスにも。登録不要。">
+<meta property="og:url" content="https://uuhai0625.github.io/doubles-ransuhyo/">
+<meta property="og:image" content="https://uuhai0625.github.io/doubles-ransuhyo/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<title>ダブルス乱数表メーカー|テニス・バドミントン・卓球のダブルス組み合わせ表を自動作成(人数・面数を選ぶだけ)</title>
+<style>
+  :root {
+    --bg: #f2f7f5;
+    --panel: #ffffff;
+    --border: #d3e2db;
+    --field-border: #47594f;
+    --text: #1c2a23;
+    --muted: #4b5e54;
+    --accent: #237a5a;
+    --accent-dark: #175a41;
+    --ng: #b3261e;
+    --locked: #c1d6cc;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+  header { background: var(--accent-dark); color: #fff; padding: 24px 20px 18px; text-align: center; }
+  header h1 { margin: 0 0 6px; font-size: 1.35rem; }
+  header p { margin: 0; font-size: .9rem; }
+  main { max-width: 1120px; margin: 0 auto; padding: 22px 16px 50px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-areas: "who pv" "how pv" "out pv"; column-gap: 18px; align-items: start; }
+  .layout > * { min-width: 0; }
+  #who-card { grid-area: who; } #how-card { grid-area: how; } #out-card { grid-area: out; }
+  #pv-card { grid-area: pv; position: sticky; top: 12px; }
+  section.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; }
+  section.card h2 { margin: 0 0 6px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fine { color: var(--muted); font-size: .86rem; margin: 8px 0 0; }
+  .badge { display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 999px; background: #e1f2ea; color: #175a41; font-weight: bold; }
+  .hidden { display: none !important; }
+  label.field, div.field { display: block; margin-bottom: 12px; }
+  .lbl { font-size: .9rem; font-weight: bold; display: block; }
+  .hint { font-size: .875rem; color: var(--muted); font-weight: normal; display: block; margin-top: 2px; }
+  select, input[type=text], textarea { margin-top: 5px; min-height: 44px; border: 1px solid var(--field-border); border-radius: 8px; font-size: 1rem; font-family: inherit; background: #fff; color: var(--text); width: 100%; padding: 8px 10px; }
+  textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+  .row2 { display: flex; gap: 12px; }
+  .row2 > * { flex: 1; min-width: 0; }
+  .chk { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .92rem; cursor: pointer; }
+  .chk input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+  .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { min-height: 44px; min-width: 44px; padding: 9px 16px; border-radius: 8px; font-size: .9rem; cursor: pointer; border: 1px solid var(--field-border); background: #fff; color: var(--text); font-family: inherit; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+  .btn.small { padding: 6px 12px; font-size: .85rem; }
+  .btn:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #c2410c; outline-offset: 2px; }
+  .btn-row .btn { flex: 1; }
+  .status { font-size: .88rem; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  .status.err { color: var(--ng); font-weight: bold; }
+  .pv { border: 1px solid var(--border); border-radius: 8px; background: #e2ebe6; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; max-height: calc(100vh - 300px); min-height: 320px; overflow-y: auto; }
+  .pv canvas { width: 100%; height: auto; display: block; box-shadow: 0 1px 4px rgba(0,0,0,.25); background: #fff; }
+  .pv .cap { font-size: .8rem; color: var(--muted); margin: 0 0 -6px; }
+  .guide { font-size: .9rem; }
+  .guide h3 { font-size: .95rem; margin: 14px 0 4px; }
+  .guide ul { padding-left: 1.3em; margin: 6px 0; }
+  .guide li { margin: 4px 0; }
+  .locked-panel { border: 1px dashed var(--locked); border-radius: 10px; padding: 16px; text-align: center; color: var(--muted); background: #f6faf8; }
+  .locked-panel .lead { color: var(--text); font-weight: bold; }
+  .locked-panel .feat-list { text-align: left; max-width: 620px; margin: 10px auto; font-size: .88rem; padding-left: 1.2em; }
+  .buy-btn { display: inline-block; margin-top: 8px; background: var(--accent-dark); color: #fff; font-weight: bold; padding: 11px 22px; border-radius: 999px; text-decoration: none; font-size: .9rem; }
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 16px 40px; font-size: .84rem; color: var(--muted); }
+  footer p { margin: 10px 0; }
+  footer a { color: var(--muted); }
+  #printArea { display: none; }
+  .jump { display: none; margin-top: 6px; font-size: .95rem; padding: 10px 0; }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "who" "how" "out" "pv"; }
+    #pv-card { position: static; }
+    .pv { max-height: none; }
+    .jump { display: inline-block; }
+  }
+  @media (max-width: 600px) {
+    .row2 { flex-direction: column; gap: 0; }
+    section.card { padding: 16px 12px; }
+  }
+  @media print {
+    body.printing > * { display: none !important; }
+    body.printing > #printArea { display: block !important; }
+    #printArea img { display: block; break-after: page; }
+    #printArea img:last-child { break-after: auto; }
+  }
+</style>
+<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style>
+<!--ANSHIN_CSS_START--><style>:root{--anshin-w:1088px;--anshin-pad:16px}.anshin-strip,.anshin{box-sizing:border-box;width:min(var(--anshin-w),calc(100% - 2 * var(--anshin-pad)));margin-left:auto;margin-right:auto}.anshin-strip{list-style:none;margin-top:10px;margin-bottom:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:.8rem;line-height:1.5}.anshin-strip li{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:999px;background:rgba(20,120,90,.07)}.anshin-strip li.anshin-more{border:0;background:none;padding:3px 2px}.anshin-strip a,.anshin a{color:inherit}.anshin{margin-top:18px;margin-bottom:18px;padding:14px 18px;border:1px solid rgba(20,120,90,.45);border-radius:10px;background:rgba(20,120,90,.05);font-size:.86rem;line-height:1.7}.anshin h2{font-size:1rem;margin:0 0 6px}.anshin p{margin:0 0 6px}.anshin ul{margin:0;padding-left:1.2em}.anshin li{margin:3px 0}.anshin details{margin-top:6px}.anshin summary{cursor:pointer;font-weight:bold}.anshin .anshin-meta{margin:8px 0 0;font-size:.8rem;opacity:.85}@media print{.anshin,.anshin-strip{display:none!important}}</style><!--ANSHIN_CSS_END-->
+<!--UPSELL_CSS_START--><style>.upsell-top{box-sizing:border-box;width:min(var(--anshin-w,880px),calc(100% - 2 * var(--anshin-pad,16px)));margin:12px auto 0;font-size:.85rem;line-height:1.6}.upsell-top a{color:inherit}.upsell-assure{list-style:none;margin:12px 0 10px;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px;font-size:.8rem;line-height:1.5}.upsell-assure li{padding:3px 10px;border:1px solid rgba(20,120,90,.45);border-radius:12px;background:rgba(20,120,90,.06)}.upsell-terms{margin:8px 0 0;font-size:.78rem;line-height:1.6;opacity:.85}.upsell-toast{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9999;box-sizing:border-box;width:min(520px,calc(100% - 24px));padding:14px 56px 14px 16px;border-radius:12px;background:#fff;color:#222;border:1px solid #c9c2d6;box-shadow:0 6px 24px rgba(0,0,0,.18);font-size:.88rem;line-height:1.6}.upsell-toast p{margin:0 0 6px;font-weight:bold}.upsell-toast ul{margin:0 0 10px;padding-left:1.2em}.upsell-toast li{margin:2px 0}.upsell-toast .upsell-note{display:block;margin-top:6px;font-size:.75rem;color:#555}.upsell-toast .upsell-go{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:8px;background:#c9283e;color:#fff;font-weight:bold;text-decoration:none}.upsell-toast .upsell-go:focus-visible,.upsell-toast .upsell-x:focus-visible{outline:3px solid #2560c4;outline-offset:2px}.upsell-toast .upsell-x{position:absolute;top:4px;right:4px;width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:#555;font-size:1.3rem;line-height:1;cursor:pointer}.upsell-inline{white-space:nowrap;color:inherit;text-decoration:underline;text-underline-offset:2px}@media print{.upsell-top,.upsell-assure,.upsell-terms,.upsell-toast,.upsell-inline{display:none!important}}</style><!--UPSELL_CSS_END-->
+</head>
+<body>
+
+<header>
+  <h1>ダブルス乱数表メーカー</h1>
+  <p>人数とコートの面数を選ぶだけで、テニス・バドミントン・卓球などの練習会で使うダブルスの組み合わせ表(乱数表)を作ります。ペアと相手がなるべく毎回入れかわり、試合数と休みがなるべく同じになるように組みます。途中参加・途中で帰る人にも対応。シングルスにも。登録不要・スマホでも使えます</p>
+</header>
+<!--ANSHIN_STRIP_START-->
+<ul class="anshin-strip" aria-label="データの扱い">
+  <li><span aria-hidden="true">✓</span> 入力内容はこの端末の中だけで処理</li>
+  <li><span aria-hidden="true">✓</span> 登録・ログイン不要</li>
+  <li><span aria-hidden="true">✓</span> 仕組みを公開中</li>
+  <li class="anshin-more"><a href="#anshin">データの扱いをくわしく</a></li>
+</ul>
+<!--ANSHIN_STRIP_END-->
+<!--UPSELL_TOP_START--><p class="upsell-top no-print" id="upsellTop">このページは無料のまま使えます。機能を増やしたい方は <a href="#pro-section">買い切り版(¥100・1回払い)<span aria-hidden="true"> ↓</span></a></p><!--UPSELL_TOP_END-->
+
+<main>
+<div class="layout">
+
+  <section class="card" id="who-card">
+    <h2>① 参加する人</h2>
+    <label class="field"><span class="lbl">練習会の名前(空欄でもかまいません)</span><input type="text" id="inTitle" maxlength="24" placeholder="例: 土曜テニス練習会"></label>
+    <div class="row2">
+      <label class="field" id="countField"><span class="lbl">人数</span><select id="inCount"></select><span class="hint" id="countHint">名前を入れないときは、この人数の番号(1〜)で作ります。名前を入れたときは名前の数で作ります</span></label>
+      <label class="field"><span class="lbl">種目</span><select id="inKind"><option value="d" selected>ダブルス</option><option value="s">シングルス</option></select></label>
+    </div>
+    <label class="field"><span class="lbl" id="namesLbl">名前(1行に1人・空欄なら番号)</span><textarea id="inNames" spellcheck="false" placeholder="例:&#10;山田&#10;佐藤&#10;鈴木" aria-describedby="namesHint"></textarea><span class="hint" id="namesHint"></span></label>
+    
+    <div class="btn-row"><button type="button" class="btn small" id="clearBtn">名前を消す</button></div>
+    <a class="jump" href="#pv-card">見本と印刷へ ↓</a>
+  </section>
+
+  <section class="card" id="how-card">
+    <h2>② 面数と回数</h2>
+    <div class="row2">
+      <label class="field"><span class="lbl">コート(台)の数</span><select id="inCourts"></select></label>
+      <label class="field"><span class="lbl">回数(1回=全部のコートで同時に1試合)</span><select id="inRounds"></select></label>
+    </div>
+    <label class="field"><span class="lbl">表の書き方</span><select id="inPlace"><option value="c" selected>コート1・コート2…(テニス・バドミントンなど)</option><option value="t">台1・台2…(卓球)</option></select></label>
+    <p class="status" id="needNote"></p>
+    <div class="btn-row"><button type="button" class="btn small" id="reshuffle">別の組み合わせにする</button><span class="status" id="shuffleSt" role="status" style="flex:2;margin-top:10px"></span></div>
+    <a class="jump" href="#pv-card">見本と印刷へ ↓</a>
+  </section>
+
+  <section class="card" id="out-card">
+    <h2>③ 表の形</h2>
+    <div class="row2">
+      <label class="field"><span class="lbl">用紙</span><select id="inPaper"><option value="A4" selected>A4縦</option><option value="A4L">A4横</option><option value="A3">A3縦(掲示用)</option></select></label>
+      <label class="field"><span class="lbl">色</span><select id="inColor"><option value="green" selected>緑</option><option value="blue">青</option><option value="orange">オレンジ</option><option value="mono">白黒(インクを節約)</option></select></label>
+    </div>
+    <label class="chk"><input type="checkbox" id="inSummary" checked> 表の下に、一人ずつの試合数・休みの数を入れる</label>
+    
+  </section>
+
+  <section class="card" id="pv-card">
+    <h2>④ 見本を確かめて印刷</h2>
+    <p class="status" id="sumNote"></p>
+    <p class="status" id="warnNote" role="status"></p>
+    <div class="btn-row" style="margin-top:0"><button type="button" class="btn small" id="reshuffle2">別の組み合わせにする</button></div>
+    <div class="pv" id="pv"></div>
+    <div class="status" id="outSt" role="status"></div>
+    <div class="btn-row">
+      <button type="button" class="btn primary" id="printBtn">組み合わせ表を印刷する</button>
+      
+      <button type="button" class="btn" id="pngBtn">画像で保存</button>
+    </div>
+    <p class="fine">倍率「100%」で印刷します。「画像で保存」した画像を、グループに送ることもできます。</p>
+    <a class="jump" href="#who-card">↑ 入力に戻る</a>
+  </section>
+
+</div>
+
+  <section class="card" id="pro-section">
+    <h2>ミックスダブルス・一人ずつの予定カード・大人数 <span class="badge">買い切り版 ¥100(税込)</span></h2>
+    <div class="locked-panel">
+      <p class="lead">男女ペアの練習会や、人数の多いサークルにも。</p>
+      <p>このページの機能は無料でそのまま使えます。買い切り版(ダウンロード購入)では、次の機能が増えます:</p>
+      <ul class="feat-list">
+        <li><strong>一人ずつの予定カード</strong>: 「何回目・どのコート・ペア・相手・休み」を一人ずつ。切って配れます</li>
+        <li><strong>ミックスダブルス</strong>: 男性と女性の名前を分けて入れると、毎回男女のペアで組みます</li>
+        <li><strong>ペアにしない2人</strong>: 夫婦・親子・コーチと生徒など、同じペアにしたくない2人を指定できます</li>
+        <li><strong>48人・10面・40回まで</strong>(無料版は16人・4面・15回まで)</li>
+        <li><strong>画像はZIPでまとめて保存・ツール名が入りません</strong>(無料版は1枚ずつ保存、用紙の右下に小さくツール名が入ります)</li>
+        <li><strong>パソコンで使うHTMLファイルです</strong>(スマホでの動作は保証していません)。ダウンロードしたファイルなので、ネットにつながっていなくても開けます</li>
+      </ul>
+<!--UPSELL_ASSURE_START--><ul class="upsell-assure" aria-label="買い切り版について"><li>¥100(税込)の1回払い・月額なし</li><li>パソコン向けのHTMLファイル(スマホでは開けない機種あり)</li><li>ネットにつながっていなくても動く</li><li>BOOTHで購入(クレジットカード・楽天ペイは手数料なし、コンビニ・銀行払いは別途手数料)</li></ul><!--UPSELL_ASSURE_END-->
+      <a class="buy-btn" href="https://uuhai0625.booth.pm/items/9018932" id="buyLink" target="_blank" rel="noopener">パソコン用の買い切り版を見る(BOOTH・新しいタブ)</a><!--UPSELL_TERMS_START--><p class="upsell-terms">販売者の情報・返品などの販売条件は、BOOTHの商品ページでご確認ください。BOOTHでの購入にはpixivのアカウントが必要です。</p><!--UPSELL_TERMS_END-->
+    </div>
+  </section>
+
+  <section class="card guide" id="guide">
+    <h2>ダブルスの乱数表とは</h2>
+    <p>練習会やサークルで、決まったペアではなく毎回ペアと相手を入れかえて試合をするための表です。人数とコートの面数から、「1回目はコート1で1・5対3・8」のように組み合わせを決めます。</p>
+    <h3>このツールの組み方</h3>
+    <ul>
+      <li>試合数が少ない人から順に入れ、休みがなるべく同じ人に続かないようにします。</li>
+      <li>同じ人とのペアがなるべく重ならないように、次に相手がなるべく重ならないように、何通りも試していちばん重なりの少ない組み合わせを選びます。</li>
+      <li>人数・面数・回数によっては、ペアの重なりや試合数の差(1試合)が出ることがあります。画面の上の説明と、表の下の「一人ずつの試合数・休み」で確かめられます。</li>
+      <li>途中から来る人は名前のあとに「 3-」(3回目から)、途中で帰る人は「 -5」(5回目まで)と書きます。いない回は表に入らず、試合数はいる回数に合わせて考えます。</li>
+    </ul>
+    <h3>人数と面数(ダブルス)</h3>
+    <ul>
+      <li>1面で試合ができるのは4人です。全部の面を使えるのは、1面なら4人から・2面なら8人から・3面なら12人から。それより多い人は、その回は休みになります(例: 8人で1面なら毎回4人が休み、7人で2面は組めないので1面になります)。</li>
+      <li>シングルスは1面(1台)2人です。</li>
+    </ul>
+    <h3>よくある質問</h3>
+    <ul>
+      <li><strong>番号で作って、あとで名前を決めたい</strong> 名前の欄を空にすると「1」「2」…の番号で作ります。くじ引きなどで番号を決めて使えます。</li>
+      <li><strong>同じ表をもう一度出したい</strong> 入力した内容と組み合わせは、このブラウザに自動で保存されます。別の組み合わせにしたいときは「別の組み合わせにする」を押します。</li>
+      <li><strong>レベル分けや男女ペアは?</strong> レベル分けはできません。男女ペア(ミックスダブルス)とペアにしない2人の指定は、買い切り版の機能です。</li>
+      <li><strong>名前の打ち間違いを直したら?</strong> 名前を直すと、組み合わせも作り直します。気に入った組み合わせのときは、先に印刷か画像で保存してください。</li>
+      <li><strong>入れた名前はどこかに送られる?</strong> 入力した文字はどこにも送られません。すべてこのブラウザの中で処理し、このブラウザにだけ自動で保存します。</li>
+    </ul>
+  </section>
+
+</main>
+
+<!--ANSHIN_START-->
+<section class="anshin" id="anshin" aria-labelledby="anshin-title">
+  <h2 id="anshin-title">データの扱いについて</h2>
+  <p>このページには、入力した内容を受け取る仕組みがありません。入力した文字や数字は、あなたのスマホやパソコンの中だけで処理されます。</p>
+  <ul>
+    <li>会員登録・ログイン・メールアドレスの入力はありません。</li>
+    <li>自分で確かめたい方へ: ページを開いたあと機内モードにしても、そのまま使えます。</li>
+  </ul>
+  <details>
+    <summary>もっとくわしく(保存・アクセス解析・公開について)</summary>
+    <ul>
+      <li>保存されるデータは、この端末のこのブラウザの中にだけ残ります(localStorage・sessionStorage)。共用のパソコンでは使い終わったら消してください。</li>
+      <li>アクセス解析(Google Analytics)のため、見たページのURL・参照元・端末やブラウザの種類・おおよその地域(IPアドレスから推定)・Cookieの識別子・BOOTHへのリンクのクリック・どのボタンを押したか(回数や選んだ設定を含む)がGoogleに送られます。目的は利用状況の把握です。入力した文字や画像は送りません。(<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用</a>/<a href="https://tools.google.com/dlpage/gaoptout?hl=ja" target="_blank" rel="noopener">計測を止めるアドオン</a>。止めてもツールはそのまま使えます)</li>
+      <li>このツールの結果や作成物は目安です。入稿・契約・販売などの前には、印刷所や公式の情報でご確認ください。</li>
+      <li>処理の中身はすべて公開しています(詳しい方向け: <a href="https://github.com/uuhai0625/doubles-ransuhyo" target="_blank" rel="noopener">GitHub</a>)。</li>
+    </ul>
+  </details>
+  <p class="anshin-meta">作っている人: ウーハイ(個人開発)/不具合・ご質問は<a href="https://x.com/uuhai0625" target="_blank" rel="noopener">X(@uuhai0625)</a>へ/<a href="https://uuhai0625.github.io/" target="_blank" rel="noopener">ほかのツール</a>/この説明の更新日: 2026-10-13</p>
+</section>
+<!--ANSHIN_END-->
+
+<footer>
+  <p id="privacyNote">入力した内容はどこにも送信されません(すべてこのブラウザの中で処理し、このブラウザにだけ自動で保存します)。</p>
+  <p><a href="https://uuhai0625.booth.pm/" target="_blank" rel="noopener">他のツールも見る(BOOTHショップ)</a></p>
+  <p>不具合・ご要望は X <a href="https://x.com/uuhai0625" target="_blank" rel="noopener">@uuhai0625</a> まで。</p>
+  <p class="related-tools no-print">関連する無料ツール: <a href="https://uuhai0625.github.io/soatari-shiaijun/" target="_blank" rel="noopener">総当たり試合順メーカー</a> ・ <a href="https://uuhai0625.github.io/tournament-hyo/" target="_blank" rel="noopener">トーナメント表作成ツール</a> ・ <a href="https://uuhai0625.github.io/#free-tools">ツール一覧</a></p>
+</footer>
+
+<div id="printArea"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var EDITION = "free"; // "full" で買い切り完全版
+
+  function track(name, params) {
+    if (!window.dataLayer) return;
+    (function () { window.dataLayer.push(arguments); })("event", name, params || {});
+  }
+  var $ = function (id) { return document.getElementById(id); };
+  function setSt(id, msg, err) { var e = $(id); if (!e) return; if (e.textContent !== msg) e.textContent = msg; e.classList.toggle("err", !!err); }
+
+  var CREDIT = true, MAXP = 16, MAXC = 4, MAXR = 15;
+  
+  var STORE = EDITION === "full" ? "uuhai-doubles-v1-full" : "uuhai-doubles-v1";
+  var FONT = '"BIZ UDGothic", "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif';
+  var THEMES = { green: ["#1f6e50", "#e2f2ea"], blue: ["#2a5f9e", "#e3eefa"], orange: ["#b45309", "#fdeedd"], mono: ["#333333", "#efefef"] };
+  var PAPERS = { A4: [210, 297], A4L: [297, 210], A3: [297, 420] };
+
+  // ===== 入力 =====
+  function lines(id) { var e = $(id); return e ? e.value.split(/\r?\n|\t/).map(function (s) { return Array.from(s.trim()).slice(0, 10).join(""); }).filter(Boolean) : []; }
+  function intOf(id, d, lo, hi) { var e = $(id); var v = e ? parseInt(e.value, 10) : NaN; return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d; }
+  function uniq(list) { var used = Object.create(null); return list.map(function (t) { var nm = t, k = 2; while (used[nm]) nm = t + "(" + (k++) + ")"; used[nm] = true; return nm; }); }
+  var seed = 1;
+  function rnd() { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0 & 0x7fffffff; return seed / 2147483648; }
+  // 「田中 3-」=3回目から、「佐藤 -5」=5回目まで、「鈴木 2-6」=2〜6回目
+  var ATT = new RegExp("^(.*?)[" + "\\s　" + "]+([0-9０-９]*)[" + "\\s　" + "]*[-〜~ー－][" + "\\s　" + "]*([0-9０-９]*)$");
+  function z2h(t) { return t.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }); }
+  function parseNames(id) {
+    var e = $(id); if (!e) return [];
+    return e.value.split(/\r?\n|\t/).map(function (raw) {
+      var t = raw.trim(); if (!t) return null;
+      var m = ATT.exec(t), from = 1, to = 999;
+      if (m && (m[2] || m[3])) { t = m[1].trim(); if (m[2]) from = Math.max(1, parseInt(z2h(m[2]), 10)); if (m[3]) to = Math.max(1, parseInt(z2h(m[3]), 10)); }
+      return t ? { name: Array.from(t).slice(0, 10).join(""), from: from, to: Math.max(from, to) } : null;
+    }).filter(Boolean);
+  }
+  function conf() {
+    var mixed = !!($("inMixed") && $("inMixed").checked), kind = mixed ? "d" : $("inKind").value;
+    var list = parseNames("inNames"), listF = mixed ? parseNames("inNamesF") : [], cut = false, numbered = false, sex = [];
+    if (mixed) {
+      if (list.length + listF.length > MAXP) cut = true;
+      var mm = list.slice(0, MAXP), ff = listF.slice(0, Math.max(0, MAXP - mm.length));
+      list = mm.concat(ff); mm.forEach(function () { sex.push(0); }); ff.forEach(function () { sex.push(1); });
+    } else {
+      cut = list.length > MAXP; list = list.slice(0, MAXP);
+      if (!list.length) { numbered = true; var n = intOf("inCount", 8, 2, MAXP); for (var i = 1; i <= n; i++) list.push({ name: String(i), from: 1, to: 999 }); }
+    }
+    var names = uniq(list.map(function (o) { return o.name; })), ng = {};
+    
+    return {
+      title: $("inTitle").value.trim(), kind: kind, mixed: mixed, names: names, sex: sex, numbered: numbered, cut: cut, ng: ng,
+      from: list.map(function (o) { return o.from; }), to: list.map(function (o) { return o.to; }), late: list.some(function (o) { return o.from > 1 || o.to < 999; }),
+      courts: intOf("inCourts", 2, 1, MAXC), rounds: intOf("inRounds", 7, 1, MAXR), summary: $("inSummary").checked,
+      cards: !!($("inCards") && $("inCards").checked), place: $("inPlace").value === "t" ? "台" : "コート",
+      paper: PAPERS[$("inPaper").value] ? $("inPaper").value : "A4", theme: THEMES[$("inColor").value] || THEMES.green
+    };
+  }
+
+  // ===== 組み合わせ =====
+  // 何通りも試して、ペアの重なり・相手の重なり・続けての休み・試合数のかたよりがいちばん少ないものを選ぶ
+  function build(C) {
+    var n = C.names.length, per = C.kind === "d" ? 4 : 2;
+    var men = [], women = [];
+    C.names.forEach(function (_, i) { if (C.mixed && C.sex[i] === 1) women.push(i); else men.push(i); });
+    var useC = C.mixed ? Math.min(C.courts, Math.floor(men.length / 2), Math.floor(women.length / 2)) : Math.min(C.courts, Math.floor(n / per));
+    if (useC < 1) return { rounds: [], useC: 0, n: n, per: per, stat: null };
+    var best = null, keep = seed;
+    var work = n * C.rounds, tries = work <= 300 ? 40 : work <= 800 ? 24 : 12, perms = work <= 300 ? 240 : work <= 800 ? 120 : 60;
+    for (var tryN = 0; tryN < tries; tryN++) {
+      var r = one(C, n, per, useC, men, women, perms);
+      if (!best || r.cost < best.cost) best = r;
+    }
+    seed = keep;
+    best.useC = useC; best.n = n; best.per = per;
+    return best;
+  }
+  function shuffle(a) { for (var j = a.length - 1; j > 0; j--) { var r = Math.floor(rnd() * (j + 1)), t = a[j]; a[j] = a[r]; a[r] = t; } return a; }
+  function one(C, n, per, useC, men, women, perms) {
+    var games = new Array(n).fill(0), rest = new Array(n).fill(0), present = new Array(n).fill(0), restedLast = new Array(n).fill(false), partner = [], opp = [], rounds = [], cost = 0;
+    for (var i = 0; i < n; i++) { partner.push(new Array(n).fill(0)); opp.push(new Array(n).fill(0)); }
+    function here(p, r) { return r + 1 >= C.from[p] && r + 1 <= C.to[p]; }
+    function mcost(o) {
+      var A = o[0], B = o[1], s = 0;
+      if (A.length === 2) { s += partner[A[0]][A[1]] * 10 + partner[B[0]][B[1]] * 10; if (C.ng[A[0] + "-" + A[1]] || C.ng[B[0] + "-" + B[1]]) s += 1000; }
+      A.forEach(function (a) { B.forEach(function (b) { s += opp[a][b] * (A.length === 2 ? 2 : 6); }); });
+      return s;
+    }
+    // 試合数の少ない順(いた回数で割った割合)。同じなら毎回ちがう順にして、顔ぶれが固定しないようにする
+    function pick(pool, k) {
+      var key = {}; pool.forEach(function (p) { key[p] = games[p] / Math.max(1, present[p]) + rnd() * 1e-6; });
+      return pool.slice().sort(function (a, b) { return key[a] - key[b]; }).slice(0, k);
+    }
+    for (var r = 0; r < C.rounds; r++) {
+      var poolM = (C.mixed ? men : Array.from({ length: n }, function (_, i) { return i; })).filter(function (p) { return here(p, r); });
+      var poolW = C.mixed ? women.filter(function (p) { return here(p, r); }) : [];
+      poolM.concat(poolW).forEach(function (p) { present[p]++; });
+      var uc = C.mixed ? Math.min(useC, Math.floor(poolM.length / 2), Math.floor(poolW.length / 2)) : Math.min(useC, Math.floor(poolM.length / per));
+      var bestM = [], bestCost = Infinity;
+      if (uc > 0) for (var t = 0; t < perms; t++) {
+        var play = C.mixed ? pick(poolM, uc * 2).concat(pick(poolW, uc * 2)) : pick(poolM, uc * per), courts = [], c0 = 0, inP = {};
+        play.forEach(function (p) { inP[p] = 1; });
+        poolM.concat(poolW).forEach(function (p) { if (!inP[p] && restedLast[p]) c0 += 4; });
+        if (C.mixed) {
+          var mm = shuffle(play.slice(0, uc * 2)), ww = shuffle(play.slice(uc * 2));
+          for (var k = 0; k < uc; k++) {
+            var m1 = mm[2 * k], m2 = mm[2 * k + 1], w1 = ww[2 * k], w2 = ww[2 * k + 1];
+            var o1 = [[m1, w1], [m2, w2]], o2 = [[m1, w2], [m2, w1]], s1 = mcost(o1), s2 = mcost(o2);
+            courts.push(s1 <= s2 ? o1 : o2); c0 += Math.min(s1, s2);
+          }
+        } else {
+          var pl = shuffle(play.slice());
+          for (var k2 = 0; k2 < uc; k2++) {
+            var g = pl.slice(k2 * per, k2 * per + per);
+            if (per === 2) { var os = [[g[0]], [g[1]]]; courts.push(os); c0 += mcost(os); continue; }
+            var opts = [[[g[0], g[1]], [g[2], g[3]]], [[g[0], g[2]], [g[1], g[3]]], [[g[0], g[3]], [g[1], g[2]]]], bs = Infinity, bo = null;
+            opts.forEach(function (o) { var s = mcost(o); if (s < bs) { bs = s; bo = o; } });
+            courts.push(bo); c0 += bs;
+          }
+        }
+        if (c0 < bestCost) { bestCost = c0; bestM = courts; if (c0 === 0) break; }
+      }
+      if (bestCost < Infinity) cost += bestCost;
+      var inPlay = {};
+      bestM.forEach(function (ct) {
+        var A = ct[0], B = ct[1];
+        A.concat(B).forEach(function (p) { games[p]++; inPlay[p] = 1; });
+        if (A.length === 2) { partner[A[0]][A[1]]++; partner[A[1]][A[0]]++; partner[B[0]][B[1]]++; partner[B[1]][B[0]]++; }
+        A.forEach(function (a) { B.forEach(function (b) { opp[a][b]++; opp[b][a]++; }); });
+      });
+      var rs = [], away = [];
+      for (var p = 0; p < n; p++) {
+        if (!here(p, r)) { away.push(p); restedLast[p] = false; continue; }
+        if (!inPlay[p]) { rest[p]++; rs.push(p); restedLast[p] = true; } else restedLast[p] = false;
+      }
+      rounds.push({ courts: bestM, rest: rs, away: away });
+    }
+    // 試合数のかたより(いた回数に対する割合)
+    var ratio = games.map(function (g, i) { return present[i] ? g / present[i] : 0; }), rmin = Math.min.apply(null, ratio), rmax = Math.max.apply(null, ratio);
+    cost += (rmax - rmin) * 60;
+    var full = games.filter(function (_, i) { return present[i] === C.rounds; });
+    var dupP = 0, dupO = 0, never = 0;
+    for (var a = 0; a < n; a++) for (var b = a + 1; b < n; b++) {
+      if (partner[a][b] > 1) dupP += partner[a][b] - 1;
+      if (opp[a][b] > 1) dupO += opp[a][b] - 1;
+      if (!opp[a][b] && !partner[a][b] && (!C.mixed || C.sex[a] === C.sex[b] || true)) never++;
+    }
+    var ngHit = 0; Object.keys(C.ng).forEach(function (kk) { var q = kk.split("-"); if (partner[+q[0]][+q[1]]) ngHit++; });
+    var gl = (full.length ? full : games);
+    return { rounds: rounds, cost: cost, stat: { games: games, rest: rest, present: present, dupP: dupP, dupO: dupO, never: never, ngHit: ngHit, gmin: Math.min.apply(null, gl), gmax: Math.max.apply(null, gl) } };
+  }
+
+  // ===== 描画 =====
+  function fit(ctx, text, maxW, size, bold, floor) {
+    var s = size; ctx.font = (bold ? "bold " : "") + s + "px " + FONT;
+    while (s > floor && ctx.measureText(text).width > maxW) { s = Math.max(floor, s * 0.92); ctx.font = (bold ? "bold " : "") + s + "px " + FONT; }
+    if (ctx.measureText(text).width > maxW) { var a = Array.from(text); while (a.length > 1 && ctx.measureText(a.join("") + "…").width > maxW) a.pop(); return a.join("") + "…"; }
+    return text;
+  }
+  function credit(ctx, W, H, k) {
+    if (!CREDIT) return;
+    ctx.save(); ctx.fillStyle = "#9a9a9a"; ctx.font = (2.6 * k) + "px " + FONT; ctx.textAlign = "right"; ctx.textBaseline = "alphabetic"; ctx.fillText("ダブルス乱数表メーカー", (W - 7) * k, (H - 7) * k); ctx.restore();
+  }
+  function sideText(C, side) { return side.slice().sort(function (a, b) { return a - b; }).map(function (p) { return C.names[p]; }).join("・"); }
+  function layout(C, R) {
+    var P = PAPERS[C.paper], W = P[0], H = P[1], m = 12, top = m + 18, rh = 14, restW = R.rounds.some(function (rd) { return rd.rest.length || rd.away.length; }) ? 32 : 0;
+    var sumH = C.summary ? 10 + Math.ceil(R.n / 4) * 5.5 : 0;
+    var per = Math.max(1, Math.floor((H - top - m - 14 - 8) / rh)), cw = (W - 2 * m - 12 - restW) / Math.max(1, R.useC);
+    return { W: W, H: H, m: m, top: top, rh: rh, per: per, cw: cw, restW: restW, sumH: sumH };
+  }
+  function tablePages(C, R) {
+    var L = layout(C, R), out = [], total = R.rounds.length;
+    for (var i = 0; i < Math.max(total, 1); i += L.per) out.push({ kind: "table", from: i, to: Math.min(total, i + L.per), L: L });
+    // 試合数のまとめを最後のページに入れる(入らなければ別ページ)
+    if (C.summary && R.stat) {
+      var last = out[out.length - 1], used = L.top + 8 + (last.to - last.from) * L.rh;
+      if (used + 6 + L.sumH > L.H - L.m - 10) out.push({ kind: "table", from: total, to: total, L: L, sumOnly: true });
+      out[out.length - 1].sum = true;
+    }
+    return out;
+  }
+  function drawTable(ctx, C, R, pg, k, idx, total) {
+    var L = pg.L, W = L.W, H = L.H, m = L.m, top = L.top, rh = L.rh, cw = L.cw, restW = L.restW;
+    ctx.fillStyle = C.theme[0]; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillText(fit(ctx, C.title || (C.kind === "d" ? (C.mixed ? "ミックスダブルス" : "ダブルス") : "シングルス") + " 組み合わせ表", (W - 2 * m) * k, 7 * k, true, 4 * k), m * k, (m + 6) * k);
+    ctx.fillStyle = "#333";
+    var sub = R.n + "人・" + R.useC + "面・" + R.rounds.length + "回" + (total > 1 ? "  (" + (idx + 1) + "/" + total + ")" : "");
+    ctx.fillText(fit(ctx, sub, (W - 2 * m) * k, 3.4 * k, false, 2.4 * k), m * k, (m + 12) * k);
+    var y = top;
+    if (!pg.sumOnly) {
+      var x = m;
+      ctx.fillStyle = C.theme[0]; ctx.fillRect(m * k, y * k, (W - 2 * m) * k, 8 * k);
+      ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(fit(ctx, "回", 11 * k, 3.4 * k, true, 2.4 * k), (x + 6) * k, (y + 4) * k); x += 12;
+      for (var c = 0; c < R.useC; c++) { ctx.fillText(fit(ctx, C.place + (c + 1), (cw - 2) * k, 3.4 * k, true, 2.4 * k), (x + cw / 2) * k, (y + 4) * k); x += cw; }
+      if (restW) ctx.fillText("休み", (x + restW / 2) * k, (y + 4) * k);
+      y += 8;
+      for (var i = pg.from; i < pg.to; i++) {
+        var rd = R.rounds[i], ry = y + (i - pg.from) * rh;
+        if ((i - pg.from) % 2) { ctx.fillStyle = C.theme[1]; ctx.fillRect(m * k, ry * k, (W - 2 * m) * k, rh * k); }
+        x = m; ctx.fillStyle = "#1d1d1d"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.font = "bold " + (4 * k) + "px " + FONT; ctx.fillText(String(i + 1), (x + 6) * k, (ry + rh / 2) * k); x += 12;
+        rd.courts.forEach(function (ct) {
+          var t1 = fit(ctx, sideText(C, ct[0]), (cw - 3) * k, 4.2 * k, true, 2.8 * k); if (/…$/.test(t1)) LW.cut = true;
+          ctx.fillStyle = "#1d1d1d"; ctx.fillText(t1, (x + cw / 2) * k, (ry + rh * 0.28) * k);
+          ctx.fillStyle = "#555"; ctx.font = (3 * k) + "px " + FONT; ctx.fillText("対", (x + cw / 2) * k, (ry + rh * 0.52) * k);
+          var t2 = fit(ctx, sideText(C, ct[1]), (cw - 3) * k, 4.2 * k, true, 2.8 * k); if (/…$/.test(t2)) LW.cut = true;
+          ctx.fillStyle = "#1d1d1d"; ctx.fillText(t2, (x + cw / 2) * k, (ry + rh * 0.77) * k);
+          x += cw;
+        });
+        x = W - m - restW;
+        if (restW && (rd.rest.length || rd.away.length)) wrapRest(ctx, rd.rest.map(function (p) { return C.names[p]; }).join("・") + (rd.away.length ? (rd.rest.length ? " " : "") + "(いない: " + rd.away.map(function (p) { return C.names[p]; }).join("・") + ")" : ""), x + 1, ry, restW - 2, rh, k);
+      }
+      var bottom = y + (pg.to - pg.from) * rh;
+      ctx.strokeStyle = "#666"; ctx.lineWidth = 0.25 * k;
+      for (var r = 0; r <= pg.to - pg.from; r++) { ctx.beginPath(); ctx.moveTo(m * k, (y + r * rh) * k); ctx.lineTo((W - m) * k, (y + r * rh) * k); ctx.stroke(); }
+      var xs = [m, m + 12]; for (var c2 = 1; c2 <= R.useC; c2++) xs.push(m + 12 + cw * c2); if (restW) xs.push(W - m);
+      xs.forEach(function (xx) { ctx.beginPath(); ctx.moveTo(xx * k, top * k); ctx.lineTo(xx * k, bottom * k); ctx.stroke(); });
+      ctx.lineWidth = 0.45 * k; ctx.strokeRect(m * k, top * k, (W - 2 * m) * k, (bottom - top) * k);
+      y = bottom + 6;
+    }
+    if (pg.sum && R.stat) drawSummary(ctx, C, R, m, y, W - 2 * m, k);
+    credit(ctx, W, H, k);
+  }
+  // 休みの欄: 3行まで折り返す(入らなければ字を小さく)
+  var LW = { cut: false };
+  function wrapRest(ctx, text, x, y, w, h, k) {
+    var s = 3.2 * k, lines;
+    for (;;) {
+      ctx.font = s + "px " + FONT; lines = []; var cur = "";
+      Array.from(text).forEach(function (ch) { if (ctx.measureText(cur + ch).width > w * k && cur) { lines.push(cur); cur = ch; } else cur += ch; });
+      if (cur) lines.push(cur);
+      if (lines.length * s * 1.15 <= (h - 1) * k || s <= 2.2 * k) break;
+      s = Math.max(2.2 * k, s * 0.9);
+    }
+    if (lines.length * s * 1.15 > (h - 1) * k) { LW.cut = true; lines = lines.slice(0, Math.floor((h - 1) * k / (s * 1.15))); lines[lines.length - 1] = lines[lines.length - 1].slice(0, -1) + "…"; }
+    ctx.fillStyle = "#555"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    lines.forEach(function (l, i) { ctx.fillText(l, (x + w / 2) * k, (y + h / 2) * k + (i - (lines.length - 1) / 2) * s * 1.15); });
+  }
+  function drawSummary(ctx, C, R, x0, y0, w, k) {
+    ctx.fillStyle = C.theme[0]; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.font = "bold " + (3.6 * k) + "px " + FONT;
+    ctx.fillText("一人ずつの試合数・休み", x0 * k, (y0 + 3) * k);
+    var cols = 4, cw = w / cols, n = R.n, rows = Math.ceil(n / cols);
+    ctx.font = (3.2 * k) + "px " + FONT; ctx.textBaseline = "middle";
+    for (var i = 0; i < n; i++) {
+      var c = Math.floor(i / rows), r = i % rows, x = x0 + c * cw, y = y0 + 6 + r * 5.5;
+      var st = "試合" + R.stat.games[i] + "・休み" + R.stat.rest[i];
+      ctx.font = (3.2 * k) + "px " + FONT; var sw = ctx.measureText(st).width / k;
+      ctx.fillStyle = "#444"; ctx.textAlign = "right"; ctx.fillText(st, (x + cw - 3) * k, (y + 2.7) * k);
+      ctx.fillStyle = "#1d1d1d"; ctx.textAlign = "left";
+      ctx.fillText(fit(ctx, C.names[i], Math.max(6, cw - sw - 6) * k, 3.2 * k, false, 2.3 * k), (x + 1) * k, (y + 2.7) * k);
+    }
+  }
+  
+  var cardPagesOf = function () { return []; };
+  
+  function render(C, R, pg, i, total, dpi) {
+    var k = dpi / 25.4, W = pg.kind === "table" ? pg.L.W : 210, H = pg.kind === "table" ? pg.L.H : 297, c = document.createElement("canvas");
+    c.width = Math.round(W * k); c.height = Math.round(H * k);
+    var ctx = c.getContext("2d"); if (!ctx) return null;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+    if (pg.kind === "table") drawTable(ctx, C, R, pg, k, i, total);
+    
+    return c;
+  }
+
+  // ===== 見本 =====
+  var lastSum = "";
+  function refresh() {
+    var C = conf(), R = build(C), TP = tablePages(C, R), P = TP.concat(R.useC ? cardPagesOf(C, R) : []), box = $("pv");
+    LW.cut = false;
+    box.textContent = "";
+    if (R.useC) P.forEach(function (pg, i) {
+      var W = pg.kind === "table" ? pg.L.W : 210, c = render(C, R, pg, i, TP.length, 820 / W * 25.4); if (!c) return;
+      if (P.length > 1) { var p = document.createElement("p"); p.className = "cap"; p.textContent = pg.kind === "table" ? "組み合わせ表 " + (i + 1) + "ページ目" : "予定カード(" + (pg.from + 1) + "〜" + pg.to + "人目)"; box.appendChild(p); }
+      c.setAttribute("role", "img"); c.setAttribute("aria-label", pg.kind === "table" ? "組み合わせ表の見本" : "予定カードの見本"); box.appendChild(c);
+    });
+    var per = C.kind === "d" ? 4 : 2, warn = [], msg;
+    if (!R.useC) { msg = C.mixed ? "ミックスダブルスは、男性・女性がそれぞれ2人以上いると作れます" : "1面に" + per + "人いるので、" + per + "人以上で作れます"; }
+    else {
+      var restN = R.n - R.useC * per;
+      msg = (C.numbered ? "見本は番号(1〜" + R.n + ")で作っています。名前を入れると表に入ります。" : "") + R.n + "人・" + R.useC + "面・" + R.rounds.length + "回。1回に" + R.useC * per + "人が試合" + (restN > 0 ? "、" + restN + "人が休み" : "(休みなし)") + "。試合数は1人" + R.stat.gmin + (R.stat.gmax !== R.stat.gmin ? "〜" + R.stat.gmax : "") + "試合" + (C.late ? "(途中参加・途中で帰る人を除く)" : "");
+      if (C.kind === "d") msg += R.stat.dupP ? "。同じ2人がもう一度ペアになるのが全部で" + R.stat.dupP + "回(人数と回数によっては避けられません)" : "。同じ2人が2回ペアになることはありません";
+      else msg += R.stat.dupO ? "。同じ相手と2回以上当たるのが全部で" + R.stat.dupO + "回" : "。同じ相手と2回当たることはありません";
+      if (R.stat.never && R.n <= 24) msg += "。一度も同じコートにならない2人が" + R.stat.never + "組";
+    }
+    if (lastSum !== msg) { setSt("sumNote", msg + "。", !R.useC); lastSum = msg; }
+    if (!R.useC) warn.push(msg);
+    if (C.cut) warn.push(EDITION === "full" ? "48人までです(49人目からは入りません)" : "無料版は16人までです(17人目からは入りません。買い切り版は48人まで)");
+    if (R.useC && C.courts > R.useC) warn.push("人数に対して面数が多いので、" + R.useC + "面だけ使います");
+    if (R.useC && R.stat.ngHit) warn.push("「ペアにしない2人」が、人数の都合で" + R.stat.ngHit + "組ペアになっています");
+    if (R.useC && C.mixed) { var nm = C.sex.filter(function (x) { return x === 0; }).length, nf = C.sex.length - nm; if (nm !== nf) warn.push("男女の人数がちがうので、" + (nm > nf ? "男性" : "女性") + "のほうが休みが多くなります"); }
+    if (R.useC && TP[0] && (TP[0].L.cw < 32 || LW.cut)) warn.push("名前が長いか面数が多くて、表の字が小さい・切れている所があります。用紙をA4横かA3にするか、名前を短く(名字だけなど)してください");
+    setSt("warnNote", warn.join("。") + (warn.length ? "。" : ""), !!C.cut || !R.useC);
+    var needMsg = C.mixed ? "1面に男性2人・女性2人。男女それぞれ" + (C.courts * 2) + "人いると全面が埋まります" : (C.kind === "d" ? "1面4人。" : "1面2人。") + (C.courts * per) + "人いると全面が埋まります(今は" + C.names.length + "人)";
+    setSt("needNote", needMsg, false);
+    if ($("mixedBox")) $("mixedBox").classList.toggle("hidden", !C.mixed);
+    if (C.mixed) $("inKind").value = "d";
+    $("inKind").disabled = C.mixed; $("countField").classList.toggle("hidden", C.mixed);
+    $("inCount").disabled = !C.numbered; $("countHint").textContent = C.numbered ? "名前を入れないときは、この人数の番号(1〜)で作ります" : "名前を入れたので、名前の数(" + C.names.length + "人)で作ります";
+    $("namesLbl").textContent = C.mixed ? "男性の名前(1行に1人)" : "名前(1行に1人・空欄なら番号)";
+    if ($("printCardBtn")) $("printCardBtn").classList.toggle("hidden", !C.cards);
+    if ($("outSt").classList.contains("err")) setSt("outSt", "", false);
+    save();
+  }
+  var timer = null;
+  function later() { clearTimeout(timer); timer = setTimeout(function () { timer = null; refresh(); }, 250); }
+  function flush() { if (timer) { clearTimeout(timer); timer = null; refresh(); } }
+
+  // ===== 自動保存 =====
+  var FIELDS = ["inTitle", "inCount", "inKind", "inNames", "inNamesF", "inNG", "inCourts", "inRounds", "inPlace", "inPaper", "inColor"];
+  var CHECKS = ["inMixed", "inSummary", "inCards"];
+  function save() { try { var o = { seed: seed }; FIELDS.forEach(function (id) { if ($(id)) o[id] = $(id).value; }); CHECKS.forEach(function (id) { if ($(id)) o[id] = $(id).checked; }); localStorage.setItem(STORE, JSON.stringify(o)); } catch (e) {} }
+  function load() {
+    try {
+      var o = JSON.parse(localStorage.getItem(STORE) || "null"); if (!o || typeof o !== "object") return;
+      FIELDS.forEach(function (id) { var v = o[id], el = $(id); if (typeof v !== "string" || !el) return; if (el.tagName === "SELECT") { if ([].some.call(el.options, function (op) { return op.value === v; })) el.value = v; } else el.value = el.tagName === "TEXTAREA" ? v.slice(0, 2000) : v.slice(0, 40); });
+      CHECKS.forEach(function (id) { if ($(id) && typeof o[id] === "boolean") $(id).checked = o[id]; });
+      if (typeof o.seed === "number" && o.seed > 0) seed = (Math.floor(o.seed) & 0x7fffffff) || 1;
+    } catch (e) {}
+  }
+  $("clearBtn").addEventListener("click", function () {
+    if (!window.confirm("入力した名前と練習会の名前を消しますか?(このブラウザに自動で保存した内容も消えます)")) return;
+    ["inTitle", "inNames", "inNamesF", "inNG"].forEach(function (id) { if ($(id)) $(id).value = ""; });
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    refresh(); setSt("outSt", "名前を消しました。");
+  });
+
+  // ===== イベント =====
+  ["inCount", "inKind", "inCourts", "inRounds", "inPlace", "inPaper", "inColor", "inMixed", "inSummary", "inCards"].forEach(function (id) { if ($(id)) $(id).addEventListener("change", refresh); });
+  ["inTitle", "inNames", "inNamesF", "inNG"].forEach(function (id) { if ($(id)) $(id).addEventListener("input", function () { setSt("shuffleSt", ""); later(); }); });
+  var shuffles = 0;
+  function reshuffle() { seed = (Date.now() % 2147483646) + 1; shuffles++; refresh(); setSt("shuffleSt", "別の組み合わせにしました(" + shuffles + "回目)。"); setSt("outSt", "別の組み合わせにしました(" + shuffles + "回目)。"); }
+  $("reshuffle").addEventListener("click", reshuffle); $("reshuffle2").addEventListener("click", reshuffle);
+
+  // ===== 印刷・保存 =====
+  function toBlob(c) { return new Promise(function (res) { c.toBlob(function (b) { res(b); }, "image/png"); }); }
+  function download(blob, name) {
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function renderAll(C, R, P, nT, dpi) {
+    var out = [], p = Promise.resolve();
+    P.forEach(function (pg, i) { p = p.then(function () { var c = render(C, R, pg, i, nT, dpi); if (!c) throw new Error("canvas"); return toBlob(c).then(function (b) { c.width = c.height = 0; if (!b) throw new Error("blob"); out.push(b); }); }); });
+    return p.then(function () { return out; });
+  }
+  var busyFlag = false, printUrls = [];
+  function clearPrint() { printUrls.forEach(function (u) { URL.revokeObjectURL(u); }); printUrls = []; $("printArea").textContent = ""; document.body.classList.remove("printing"); }
+  function doPrint(cardsOnly) {
+    if (busyFlag) return;
+    flush();
+    var C = conf(), R = build(C);
+    if (!R.useC) { setSt("outSt", "人数が足りないので、表を作れません。", true); return; }
+    var TP = tablePages(C, R), P = cardsOnly ? cardPagesOf(C, R) : TP, paper = cardsOnly ? PAPERS.A4 : PAPERS[C.paper];
+    if (!P.length) return;
+    busyFlag = true; clearPrint();
+    $("pageStyle").textContent = "@page { size: " + paper[0] + "mm " + paper[1] + "mm; margin: 0; }";
+    setSt("outSt", "印刷用の画像を作っています…");
+    renderAll(C, R, P, TP.length, P.length > 6 ? 200 : 250).then(function (blobs) {
+      return Promise.all(blobs.map(function (b) {
+        return new Promise(function (res, rej) { var u = URL.createObjectURL(b), im = new Image(); printUrls.push(u); im.style.width = (paper[0] - 0.3) + "mm"; im.style.height = (paper[1] - 0.3) + "mm"; im.onload = res; im.onerror = function () { rej(new Error("img")); }; im.alt = ""; im.src = u; $("printArea").appendChild(im); });
+      })).then(function () { return blobs.length; });
+    }).then(function (cnt) {
+      document.body.classList.add("printing");
+      setSt("outSt", "印刷画面を開きました(" + cnt + "枚)。倍率は「100%」がおすすめです。");
+      track("doubles_print", { n: R.n, courts: R.useC, rounds: R.rounds.length, kind: C.mixed ? "mx" : C.kind, cards: cardsOnly ? 1 : 0, late: C.late ? 1 : 0 });
+      setTimeout(function () { window.print(); }, 50);
+    }).catch(function () { clearPrint(); setSt("outSt", "印刷用の画像を作れませんでした。ページを読み込み直して、もう一度お試しください。", true); }).then(function () { busyFlag = false; });
+  }
+  $("printBtn").addEventListener("click", function () { doPrint(false); });
+  if ($("printCardBtn")) $("printCardBtn").addEventListener("click", function () { doPrint(true); });
+  window.addEventListener("afterprint", function () { document.body.classList.remove("printing"); });
+  var saveMany = function (blobs, names) {
+    var p = Promise.resolve();
+    blobs.forEach(function (b, i) { p = p.then(function () { download(b, names[i]); return new Promise(function (r) { setTimeout(r, 700); }); }); });
+    return p;
+  };
+  
+  $("pngBtn").addEventListener("click", function () {
+    if (busyFlag) return;
+    flush();
+    var C = conf(), R = build(C);
+    if (!R.useC) { setSt("outSt", "人数が足りないので、表を作れません。", true); return; }
+    var TP = tablePages(C, R), P = TP.concat(cardPagesOf(C, R)), safe = (C.title || "ダブルス組み合わせ表").replace(/[\/\\:*?"<>|]/g, "");
+    var names = P.map(function (pg, i) { return safe + "_" + ("0" + (i + 1)).slice(-2) + "_" + (pg.kind === "table" ? "組み合わせ表" : "予定カード") + ".png"; });
+    busyFlag = true; setSt("outSt", "画像を作っています…");
+    renderAll(C, R, P, TP.length, P.length > 6 ? 200 : 250).then(function (blobs) {
+      var phone = window.matchMedia && matchMedia("(pointer:coarse)").matches, files = null;
+      track("doubles_save", { n: R.n, courts: R.useC, rounds: R.rounds.length, kind: C.mixed ? "mx" : C.kind, pages: blobs.length });
+      try { files = blobs.map(function (b, i) { return new File([b], names[i], { type: "image/png" }); }); } catch (e) {}
+      if (phone && files && navigator.canShare && navigator.canShare({ files: files })) {
+        setSt("outSt", "共有メニューが開きます。iPhoneは「画像を保存」、Androidは「ダウンロード」などを選んでください。LINEなどに直接送ることもできます。");
+        return navigator.share({ files: files }).then(function () { setSt("outSt", "保存しました。"); }, function (err) {
+          if (err && err.name === "AbortError") { setSt("outSt", "共有をやめました。もう一度押すと保存できます。"); return; }
+          return saveMany(blobs, names, safe + ".zip").then(function () { setSt("outSt", "保存しました。"); });
+        });
+      }
+      return saveMany(blobs, names, safe + "_" + blobs.length + "枚.zip").then(function () { setSt("outSt", (blobs.length > 1 ? blobs.length + "枚の画像を" : "画像を") + "保存しました。" + (blobs.length > 1 && EDITION !== "full" ? "ブラウザが「複数のファイルのダウンロード」を確かめてきたら、許可してください。" : "")); });
+    }).catch(function () { setSt("outSt", "画像を作れませんでした。ページを読み込み直して、もう一度お試しください。", true); }).then(function () { busyFlag = false; });
+  });
+
+  if (EDITION === "full") $("pro-section").classList.add("hidden");
+  if (EDITION !== "full") {
+    $("privacyNote").innerHTML = '入力した内容はどこにも送信されません(すべてこのブラウザの中で処理し、このブラウザにだけ自動で保存します)。このページでは利用状況の把握のためにアクセス解析(Google Analytics)を使っています(入力した内容は含みません)。<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener">Googleによるデータの使用について</a>';
+  }
+  // 初期値
+  for (var n = 2; n <= MAXP; n++) { var o = document.createElement("option"); o.value = n; o.textContent = n + "人"; if (n === 8) o.selected = true; $("inCount").appendChild(o); }
+  for (var c = 1; c <= MAXC; c++) { var o2 = document.createElement("option"); o2.value = c; o2.textContent = c + "面"; if (c === 2) o2.selected = true; $("inCourts").appendChild(o2); }
+  for (var r = 1; r <= MAXR; r++) { var o3 = document.createElement("option"); o3.value = r; o3.textContent = r + "回"; if (r === 7) o3.selected = true; $("inRounds").appendChild(o3); }
+  $("namesHint").textContent = (EDITION === "full" ? "48人まで。" : "16人まで(買い切り版は48人まで)。") + "1人10文字まで。Excelの1列をそのまま貼り付けても使えます。途中から来る人は「山田 3-」(3回目から)、途中で帰る人は「佐藤 -5」(5回目まで)。同じ名前には(2)などがつきます";
+  load();
+  refresh();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+})();
+</script>
+<!--UPSELL_JS_START-->
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  if (q.get("obs") === "1" || document.documentElement.classList.contains("obs")) return;
+  // 小さな案内(トースト)は、買い切り版がパソコン向けなので、マウス操作の広い画面でだけ出す
+  var pc = !!(window.matchMedia && matchMedia("(pointer:fine) and (min-width:720px)").matches);
+  var buy = document.getElementById("buyLink");
+  var pro = document.getElementById("pro-section");
+  if (!buy || !pro) return;
+  var FEATS = [];
+  var path = location.pathname.replace(/index\.html$/, "");
+  var KEY_CLOSED = "upsell_closed_until:" + path, KEY_SHOWN = "upsell_shown:" + path;
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function sess(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
+  function gtagEv(name, p) { if (!window.dataLayer) return; (function () { window.dataLayer.push(arguments); })("event", name, p || {}); }
+
+  var shown = false;
+  function blocked() {
+    if (shown || sess(KEY_SHOWN) === "1") return true;
+    var until = Number(store(KEY_CLOSED) || 0);
+    return until && Date.now() < until;
+  }
+  function feats() {
+    if (FEATS.length) return FEATS;
+    var out = [];
+    var lis = pro.querySelectorAll(".feat-list li");
+    for (var i = 0; i < lis.length && out.length < 3; i++) {
+      var all = lis[i].textContent.replace(/\s+/g, " ").trim();
+      if (/スマホ|HTMLファイル|パソコンで使う/.test(all)) continue;
+      var st = lis[i].querySelectorAll("strong");
+      var t = st.length === 1 ? st[0].textContent : all.split(/[::。]/)[0];
+      t = t.replace(/[((][^()()]*[))]/g, "").replace(/\s+/g, " ").trim();
+      if (t.length > 40) t = t.slice(0, 39) + "…";
+      if (t) out.push(t);
+    }
+    return out;
+  }
+  // 「〜してください」「できません」など、失敗の表示が出ていたら案内しない
+  function failed() {
+    var els = document.querySelectorAll('[role="status"], [role="alert"], [aria-live]');
+    for (var i = 0; i < els.length; i++) {
+      if (pro.contains(els[i]) || !els[i].offsetParent) continue;
+      if (/ください|できません|できませんでした|失敗|ありません|エラー/.test(els[i].textContent)) return true;
+    }
+    return false;
+  }
+  function proVisible() {
+    var r = pro.getBoundingClientRect();
+    return r.top < innerHeight && r.bottom > 0;
+  }
+  function show(trigger) {
+    if (!pc || blocked() || (trigger === "action" && failed()) || proVisible()) return;
+    var list = feats();
+    if (!list.length) return;
+    shown = true;
+    sess(KEY_SHOWN, "1");
+    var box = document.createElement("aside");
+    box.className = "upsell-toast";
+    box.setAttribute("aria-label", "買い切り版のご案内");
+    box.setAttribute("aria-live", "polite");
+    document.body.appendChild(box);
+    var p = document.createElement("p");
+    p.textContent = trigger === "limit"
+      ? "この先は買い切り版の機能です。パソコン用の買い切り版(¥100・税込)なら:"
+      : "うまくできましたか? パソコン用の買い切り版(¥100・税込)なら、さらに:";
+    var ul = document.createElement("ul");
+    list.forEach(function (t) { var li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    var a = document.createElement("a");
+    a.className = "upsell-go";
+    a.id = "upsellToastLink";
+    a.href = buy.href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "BOOTHで見る(新しいタブ)";
+    var bg = getComputedStyle(buy).backgroundColor;
+    if (bg && !/rgba?\(0, 0, 0, 0\)|transparent/.test(bg)) a.style.background = bg;
+    var x = document.createElement("button");
+    x.type = "button";
+    x.className = "upsell-x";
+    x.setAttribute("aria-label", "この案内を閉じる");
+    x.textContent = "×";
+    function close(remember) {
+      if (box.parentNode) box.parentNode.removeChild(box);
+      document.removeEventListener("keydown", onKey);
+      if (remember) store(KEY_CLOSED, String(Date.now() + 7 * 864e5));
+    }
+    // Escはページ側の操作(選択解除など)にも使われるので、案内の中にフォーカスがある時だけ閉じる
+    function onKey(e) { if (e.key === "Escape" && box.contains(document.activeElement)) close(true); }
+    x.addEventListener("click", function () { close(true); });
+    a.addEventListener("click", function () { setTimeout(function () { close(false); }, 0); });
+    document.addEventListener("keydown", onKey);
+    setTimeout(function () {
+      var note = document.createElement("small");
+      note.className = "upsell-note";
+      note.textContent = "スマホではファイルを開けない機種があります";
+      box.appendChild(x); box.appendChild(p); box.appendChild(ul); box.appendChild(a); box.appendChild(note);
+    }, 50);
+    gtagEv("upsell_show", { trigger: trigger });
+  }
+
+  // 保存・コピー・印刷・書き出しを押した直後(結果を受け取れたタイミング)
+  var OK = /保存|コピー|印刷|書き出|ダウンロード|共有|PDF/;
+  var NG = /読み込|リセット|消|削除|このブラウザに保存|確認|イメージを見る|戻/;
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, a[download], input[type=button], input[type=submit]") : null;
+    if (!el || el.closest("#pro-section, .upsell-toast, #anshin")) return;
+    var label = (el.textContent || el.value || "").replace(/\s+/g, " ");
+    if (!OK.test(label) || NG.test(label)) return;
+    setTimeout(function () { show("action"); }, 1500);
+  }, true);
+
+  // 無料版の上限まわり
+  // (1) ページが出す「買い切り版」の一文に、購入欄へのリンクを足す(スマホでも)。🔒のタブは薄く表示されているので入れない
+  // (2) 案内(パソコンのみ)は、はっきりした合図のときだけ出す: 🔒のクリック・買い切り版にふれたalert・
+  //     初めて出た「〜まで/のみ/以降/入っていません」の上限の一文(計算のたびに出る誘導文や、同じ文の描き直しでは出さない)
+  var SKIP = "#pro-section, .upsell-toast, .upsell-top, #anshin, a, button, label, select, option, h1, h2, h3, .badge, header, footer, nav, textarea, pre, code, [contenteditable], svg";
+  var LIMIT = /まで|のみ|以降|入っていません/;
+  var seenText = {}, ready = false;
+  function goPro(e) {
+    if (e) e.preventDefault();
+    pro.setAttribute("tabindex", "-1");
+    pro.scrollIntoView({ behavior: "smooth", block: "start" });
+    pro.focus({ preventScroll: true });
+  }
+  function linkify(root, deep) {
+    var limitHit = false;
+    var els = root.matches("p, div, span, li") ? [root] : [];
+    if (deep) els = els.concat([].slice.call(root.querySelectorAll("p, div, span, li")));
+    els.forEach(function (el) {
+      if (el.closest(SKIP) || el.closest('[role="radio"], [role="option"], [role="tab"], [role="button"], [tabindex]:not([tabindex="-1"])') || el.querySelector("a, button, p, div, li, input, label")) return;
+      // 選択肢の「○○(買い切り版)」ではなく、文として買い切り版にふれている要素だけ
+      var own = "";
+      for (var n = el.firstChild; n; n = n.nodeType === 1 && n.className === "upsell-inline" ? null : n.nextSibling) if (n.nodeType === 3) own += n.nodeValue;
+      own = own.trim();
+      if (own.indexOf("買い切り版") < 0 || /[((]買い切り版[))]$/.test(own) || /^🔒/.test(own)) return;
+      var key = own.replace(/\d+/g, "#");
+      if (ready && !seenText[key] && LIMIT.test(own) && !el.closest(".teaser, #teaser, [id$=teaser], #tz")) limitHit = true;
+      seenText[key] = 1;
+      if (el.querySelector(".upsell-inline")) return;
+      var a = document.createElement("a");
+      a.className = "upsell-inline";
+      a.href = "#pro-section";
+      a.setAttribute("aria-label", "くわしく:買い切り版の説明へ移動");
+      a.textContent = "くわしく";
+      var ar = document.createElement("span");
+      ar.setAttribute("aria-hidden", "true");
+      ar.textContent = " ↓";
+      a.appendChild(ar);
+      a.addEventListener("click", goPro);
+      el.appendChild(document.createTextNode(" "));
+      el.appendChild(a);
+    });
+    return limitHit;
+  }
+  linkify(document.body, true);
+  setTimeout(function () { ready = true; }, 1500);
+  var topLink = document.querySelector("#upsellTop a");
+  if (topLink) topLink.addEventListener("click", goPro);
+  new MutationObserver(function (ms) {
+    // 変わったところだけを調べる(足された要素はその中も、文字の変更は親要素だけ)
+    var hit = false, done = new Set();
+    function check(t, deep) {
+      if (!t || t.nodeType !== 1 || done.has(t) || t.closest(".upsell-toast")) return;
+      done.add(t);
+      if (linkify(t, deep)) hit = true;
+    }
+    ms.forEach(function (m) {
+      if (m.type === "characterData") { check(m.target.parentNode, false); return; }
+      check(m.target, false);
+      for (var i = 0; i < m.addedNodes.length; i++) if (m.addedNodes[i].nodeType === 1) check(m.addedNodes[i], true);
+    });
+    if (hit) setTimeout(function () { show("limit"); }, 800);
+  }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  document.addEventListener("click", function (e) {
+    var el = e.target && e.target.closest ? e.target.closest("button, div, span, li") : null;
+    var first = el && el.firstChild && el.firstChild.nodeType === 3 ? el.firstChild.nodeValue : "";
+    if (!/^\s*🔒/.test(first) || e.target.closest("#pro-section")) return;
+    if (pc) setTimeout(function () { show("limit"); }, 300); else goPro();
+  }, true);
+  var origAlert = window.alert;
+  window.alert = function (msg) {
+    var r = origAlert.apply(window, arguments);
+    if (/買い切り版/.test(String(msg))) setTimeout(function () { show("limit"); }, 300);
+    return r;
+  };
+})();
+</script>
+<!--UPSELL_JS_END-->
+</body>
+</html>
